@@ -7,10 +7,8 @@ pipeline {
     }
     
     environment {
-        withCredentials([string(credentialsId: 'AWS_USER_ID', variable: 'AWS_USER_ID'), string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')]) {
-            AWS_USER_ID                 = AWS_USER_ID
-            AWS_REGION                  = AWS_REGION
-        }
+        AWS_REGION                  = credentials('AWS_REGION')
+        AWS_USER_ID                 = credentials('AWS_USER_ID')
         MICROSERVICE_IMAGE_NAME     = 'gateway-jce'
         TAG                         = 'latest'
     }
@@ -33,7 +31,7 @@ pipeline {
         stage('Sonar Scan'){
             steps {
                 withSonarQubeEnv(installationName: 'SonarQube-Server'){
-                    sh 'mvn sonar:sonar'
+                    sh "mvn sonar:sonar -Dsonar.projectName=${MICROSERVICE_IMAGE_NAME}"
                 }
             }
         }
