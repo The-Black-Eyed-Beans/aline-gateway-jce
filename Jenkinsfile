@@ -10,7 +10,7 @@ pipeline {
         AWS_REGION                  = credentials('AWS_REGION')
         AWS_USER_ID                 = credentials('AWS_USER_ID')
         MICROSERVICE_IMAGE_NAME     = 'gateway-jce'
-        TAG                         = 'latest'
+        TAG                         = "${BUILD_NUMBER}_${BUILD_ID}"
     }
 
     stages {
