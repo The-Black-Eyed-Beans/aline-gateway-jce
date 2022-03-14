@@ -50,16 +50,16 @@ pipeline {
             }
         }
         
-        // stage('Archive Previous Latest'){
-        //     //TODO: Versioning for previous builds
-        // }
-        
         stage('Push Image'){
             steps{
                 withAWS(credentials: 'jce-key') {
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                    // Push current build to ECR with build number and date-time
                     sh "docker tag ${MICROSERVICE_IMAGE_NAME}:${TAG} ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:${TAG}"
                     sh "docker push ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:${TAG}"
+                    // Push current build to ECR as latest
+                    sh "docker tag ${MICROSERVICE_IMAGE_NAME}:${TAG} ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:latest"
+                    sh "docker push ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:latest"
                 }
             }
         }
@@ -67,9 +67,10 @@ pipeline {
     
     post {
         success{
-            //Remove image locally
+            //Remove images locally
             sh "docker rmi ${MICROSERVICE_IMAGE_NAME}:${TAG}"
             sh "docker rmi ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:${TAG}"
+            sh "docker rmi ${AWS_USER_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${MICROSERVICE_IMAGE_NAME}:latest"
         }
     }
 }
